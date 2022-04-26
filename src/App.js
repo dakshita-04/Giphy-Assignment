@@ -1,25 +1,86 @@
-import logo from './logo.svg';
+import React, {Component} from 'react';
 import './App.css';
+import {url1, url2} from './config'
+import Axios from 'axios';
+import Spinner from './component/Spinner'
+import Giffs from './component/Giffs'
+import GiffSelected from './component/GiffSelected'
+import Header from './component/Header'
+class App extends Component{
+  constructor(){
+    super();
+    this.state = {
+      giffs: {},
+      body: 'no search',
+      spinner: false,
+      giffSelected: {}
+    }
+  }
+  async search(val){
+    let giffs = {}
+    this.setState({spinner: true})
+    await Axios.get(`${url1}${val}${url2}`)  
+      .then(res => {
+        if(res.status === 200) {
+          let data = res.data.data  
+          console.log(data)
+          giffs = data.map(d => {
+            return {
+              image_url: d.images.fixed_height.url,
+              created: d.import_datetime,
+              embed_url: d.embed_url,
+              title: d.title,
+              uploaded: d.source_tld === '' ? 'Unknown' : d.source_tld
+            }
+          })
+          this.setState({
+            giffs: giffs,
+            body: 'search',
+            spinner: false
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+          })
+        }
+      })
+      .catch(err => {
+        console.log(err)
+      })
+  }
+  selectGiff(giff){
+    let selGiff = this.state.giffs.filter(g => {
+      return g.title === giff
+    })
+    this.setState({
+      body: 'giffs Selected',
+      giffSelected: selGiff
+    })
+  }
+  render(){
+    return (
+      <div className="App">
+        <div className="top">
+          {/* header */}
+          <Header
+            click={(val)=>this.search(val)} />
+          {/* body */}
+          <div className="body">
+            { this.state.body === 'no search' ? 
+                <Spinner 
+                  search={this.state.body}
+                  spin={this.state.spinner}/> : 
+              this.state.body === 'search' ? 
+                <Giffs 
+                  giffs={this.state.giffs}
+                  click={(giff)=> this.selectGiff(giff)}/> :
+              this.state.body === 'giffs Selected' ? 
+                <GiffSelected 
+                  goBack={()=> this.setState({body: 'search'})}
+                  giff={this.state.giffSelected}/> : null}
+          </div>
+        </div>
+      </div>
+      );
+    }
+  }
+  
+  export default App;
 
-export default App;

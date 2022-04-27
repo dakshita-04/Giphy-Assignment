@@ -3,7 +3,7 @@ export default function componentName(props) {
   let giffs = props.giffs.map((giff, i )=> {
     return (
               <div 
-                className="col-md-3 giffItem"
+                className="giffItem"
                 key={i}>
                 <div 
                   className="card samp"
